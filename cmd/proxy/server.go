@@ -85,5 +85,5 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println(eventType)
-	log.Println(body)
+	log.Printf("%s", body)
 }
