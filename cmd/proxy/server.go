@@ -103,6 +103,14 @@ func hook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	commitHash := c.PullRequest.Source.Commit.Hash
+
 	log.Printf("Got webhook with event type : %s", eventType)
-	log.Printf("Commit Hash : %s", c.PullRequest.Source.Commit.Hash)
+	log.Printf("Commit Hash : %s", commitHash)
+
+	// Checkout to commit hash
+	err = gitClone(commitHash)
+	if err != nil {
+		log.Printf("Got error when cloning repository : %s", err)
+	}
 }
