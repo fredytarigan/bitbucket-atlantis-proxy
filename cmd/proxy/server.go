@@ -104,5 +104,5 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Got webhook with event type : %s", eventType)
-	log.Printf("Commit Hash : %s", c)
+	log.Printf("Commit Hash : %s", c.PullRequest.Source.Commit.Hash)
 }
