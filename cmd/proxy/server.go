@@ -12,6 +12,10 @@ type StandardResponse struct {
 	StatusCode string
 }
 
+type CommitHash struct {
+	Commit map[string]map[string]map[string]interface{} `json:"hash"`
+}
+
 const bitbucketEventTypeHeader = "X-Event-Key"
 const bitbucketCloudRequestIDHeader = "X-Request-UUID"
 
@@ -66,6 +70,8 @@ Hook handler
 URI Path : "/hook"
 */
 func hook(w http.ResponseWriter, r *http.Request) {
+	var c CommitHash
+
 	eventType := r.Header.Get(bitbucketEventTypeHeader)
 
 	defer r.Body.Close()
@@ -84,6 +90,11 @@ func hook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	log.Println(eventType)
-	log.Printf("%s", body)
+	err = json.NewDecoder(r.Body).Decode(&c)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Printf("Commit Hash : %s", c)
 }
