@@ -29,10 +29,10 @@ func gitClone(c string) error {
 	cloneDir := "/opt/terraform"
 
 	// check if directory exists and not empty
-	ok, err := IsDirEmpty("/opt/terraform")
+	ok, err := IsDirEmpty(cloneDir)
 
 	if err != nil {
-		return err
+		os.Mkdir(cloneDir, 0755)
 	}
 
 	if ok {
