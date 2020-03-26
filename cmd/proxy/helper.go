@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os/user"
 
 	"golang.org/x/crypto/ssh"
@@ -10,6 +11,7 @@ import (
 )
 
 func gitClone(c string) error {
+	log.Printf("Commit Sent : %s", c)
 	currentUser, err := user.Current()
 
 	if err != nil {
