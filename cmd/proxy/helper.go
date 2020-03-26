@@ -3,9 +3,10 @@ package main
 import (
 	"os/user"
 
+	"golang.org/x/crypto/ssh"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
+	gossh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 func gitClone(c string) error {
@@ -15,7 +16,8 @@ func gitClone(c string) error {
 		return err
 	}
 
-	sshAuth, err := ssh.NewPublicKeysFromFile("git", currentUser.HomeDir+"/.ssh/id_rsa", "")
+	sshAuth, err := gossh.NewPublicKeysFromFile("git", currentUser.HomeDir+"/.ssh/id_rsa", "")
+	sshAuth.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 
 	if err != nil {
 		return err
