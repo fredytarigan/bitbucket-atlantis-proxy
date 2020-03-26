@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -36,14 +37,17 @@ func gitClone(c string) error {
 
 	if ok {
 		// Clone the given repository to the given directory
+		log.Printf("Cloning source repositoring from %s to local %s", repoURL, cloneDir)
 		_ = exec.Command("git", "clone", "--branch", "master", "--single-branch", repoURL, cloneDir)
 	}
 
 	// run a pull
+	log.Printf("Running git pull command on %s", cloneDir)
 	cmd := exec.Command("git", "pull")
 	cmd.Dir = cloneDir
 
 	// checkout to a given commit
+	log.Printf("Running git checkout to commitID %s on %s", c, cloneDir)
 	cmd = exec.Command("git", "checkout", c)
 	cmd.Dir = cloneDir
 
