@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -75,7 +74,9 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	eventType := r.Header.Get(bitbucketEventTypeHeader)
 
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+	// body, err := ioutil.ReadAll(r.Body)
+
+	err := json.NewDecoder(r.Body).Decode(&c)
 
 	if err != nil {
 		data := StandardResponse{
@@ -90,11 +91,6 @@ func hook(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&c)
-
-	if err != nil {
-		log.Println(err)
-	}
-
+	log.Printf("Got webhook with event type : %s", eventType)
 	log.Printf("Commit Hash : %s", c)
 }
