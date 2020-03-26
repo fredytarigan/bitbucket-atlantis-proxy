@@ -28,6 +28,8 @@ func gitClone(c string) error {
 	repoURL := "git@bitbucket.org:ovoeng/terraform.git"
 	cloneDir := "/opt/terraform"
 
+	extraEnv := "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\""
+
 	// check if directory exists and not empty
 	ok, err := IsDirEmpty(cloneDir)
 
@@ -39,6 +41,8 @@ func gitClone(c string) error {
 		// Clone the given repository to the given directory
 		log.Printf("Cloning source repositoring from %s to local %s", repoURL, cloneDir)
 		cmd := exec.Command("git", "clone", "--branch", "master", "--single-branch", repoURL, cloneDir)
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, extraEnv)
 		_, err := cmd.Output()
 		if err != nil {
 			return err
@@ -48,6 +52,8 @@ func gitClone(c string) error {
 	// run a pull
 	log.Printf("Running git pull command on %s", cloneDir)
 	cmd := exec.Command("git", "pull")
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, extraEnv)
 	cmd.Dir = cloneDir
 	_, err = cmd.Output()
 	if err != nil {
@@ -57,6 +63,8 @@ func gitClone(c string) error {
 	// checkout to a given commit
 	log.Printf("Running git checkout to commitID %s on %s", c, cloneDir)
 	cmd = exec.Command("git", "checkout", c)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, extraEnv)
 	cmd.Dir = cloneDir
 	_, err = cmd.Output()
 	if err != nil {
