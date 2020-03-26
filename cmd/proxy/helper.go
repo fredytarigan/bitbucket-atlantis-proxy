@@ -23,8 +23,8 @@ func gitClone(c string) error {
 
 	// Clone the given repository to the given directory
 	r, err := git.PlainClone("/opt/terraform", false, &git.CloneOptions{
-		URL:  "git@bitbucket.org:ovoeng/terraform.git",
-		Auth: sshAuth,
+		URL:               "git@bitbucket.org:ovoeng/terraform.git",
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 
 	if err != nil {
