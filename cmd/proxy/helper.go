@@ -1,35 +1,25 @@
 package main
 
 import (
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
-func IsDirEmpty(name string) (bool, error) {
-	f, err := os.Open(name)
-	if err != nil {
-		return false, err
-	}
-	defer f.Close()
+const DirStructure = `(?P<fullpath>.*\/)(?P<filename>.*.tf)`
 
-	// read in ONLY one file
-	_, err = f.Readdir(1)
-
-	// and if the file is EOF... well, the dir is empty.
-	if err == io.EOF {
-		return true, nil
-	}
-	return false, err
+type environment struct {
+	Environment string
 }
 
 func gitClone(c string) error {
@@ -114,5 +104,70 @@ func gitClone(c string) error {
 		Hash: plumbing.NewHash(hashRev),
 	})
 
+	dirChange := getChange()
+
+	log.Printf("got changes on directory : %s", dirChange)
+
 	return nil
+}
+
+func getChange() []string {
+	cloneDir := "/opt/terraform"
+	var matcher *regexp.Regexp
+	//var finalDir string
+	matcher = regexp.MustCompile(DirStructure)
+
+	repo, _ := git.PlainOpen(cloneDir)
+	ref, _ := repo.Head()
+	commit, _ := repo.CommitObject(ref.Hash())
+	fileStats := object.FileStats{}
+
+	fileStats, _ = commit.Stats()
+
+	filePaths := []string{}
+
+	for _, fileStat := range fileStats {
+		filePaths = append(filePaths, fileStat.Name)
+	}
+
+	f := make(map[string]string)
+	pr := []string{}
+	for _, filePath := range filePaths {
+		if !strings.Contains(filePath, "/") {
+			continue
+		}
+
+		// check if the changes is in the same directory
+		matches := matcher.FindStringSubmatch(filePath)
+
+		if len(matches) == 0 {
+			continue
+		} else {
+			for i, name := range matcher.SubexpNames() {
+				if name == "" {
+					continue
+				}
+				f[name] = matches[i]
+			}
+		}
+
+		pr = append(pr, f["fullpath"])
+	}
+	dir := removeDupes(pr)
+	return dir
+}
+
+func removeDupes(folder []string) []string {
+	e := map[string]bool{}
+
+	for i := range folder {
+		e[folder[i]] = true
+	}
+
+	result := []string{}
+	for _ = range e {
+		result = append(result)
+	}
+
+	return result
 }
