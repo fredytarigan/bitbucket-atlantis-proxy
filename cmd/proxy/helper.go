@@ -58,10 +58,16 @@ func gitClone(c string) error {
 				Auth:              auth,
 			})
 
-			return err
+			if err != nil {
+				return err
+			}
 		} else {
 			log.Printf("Found existing directory %s", cloneDir)
 			r, err = git.PlainOpen(cloneDir)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
