@@ -37,7 +37,7 @@ func gitClone(c string) error {
 	var r *git.Repository
 	var err error
 
-	sshPath := os.Getenv("HOME") + "/.ssh/repokey"
+	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 	sshKey, _ := ioutil.ReadFile(sshPath)
 	signer, _ := ssh.ParsePrivateKey(sshKey)
 	auth := &gitssh.PublicKeys{
@@ -73,7 +73,8 @@ func gitClone(c string) error {
 	}
 
 	// fetch the repository
-	err = r.Fetch(&git.FetchOptions{
+	_ = r.Fetch(&git.FetchOptions{
+		Auth:  auth,
 		Force: true,
 	})
 
