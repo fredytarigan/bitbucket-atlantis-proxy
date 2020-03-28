@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
+	"strings"
 
 	"golang.org/x/crypto/ssh"
 
@@ -78,40 +80,39 @@ func gitClone(c string) error {
 		Force: true,
 	})
 
-	// ... retrieving the branch being pointed by HEAD
-	ref, err := r.Head()
-	if err != nil {
-		return err
-	}
+	// get the commit hash
+	log.Printf("git rev-parse : %s", c)
+	revParseCmd := exec.Command("git", "rev-parse", c)
+	revParseCmd.Dir = cloneDir
+	outputRevParse, err := revParseCmd.CombinedOutput()
 
-	// checking out to specific commit provided
-	log.Printf("checkout to commit : %s", c)
+	hashRev := strings.Trim(string(outputRevParse), "\n")
+
+	// checking out
 	w, err := r.Worktree()
 	if err != nil {
-		return err
+		return nil
 	}
-
-	// pull the latest code
-	log.Printf("git pull origin")
-	_ = w.Pull(&git.PullOptions{RemoteName: "origin"})
 
 	err = w.Checkout(&git.CheckoutOptions{
-		Hash: plumbing.NewHash(c),
+		Hash: plumbing.NewHash(hashRev),
 	})
 
-	// ... retrieving the branch being pointed by HEAD
-	ref, err = r.Head()
 	if err != nil {
-		return err
+		return nil
 	}
 
-	// ... retrieving the commit object
-	commit, err := r.CommitObject(ref.Hash())
-	if err != nil {
-		return err
-	}
+	log.Printf("git pull origin")
 
-	log.Println(commit)
+	_ = w.Pull(&git.PullOptions{
+		RemoteName: "origin",
+		Auth:       auth,
+	})
+
+	log.Printf("checking out to commit hash %s", hashRev)
+	err = w.Checkout(&git.CheckoutOptions{
+		Hash: plumbing.NewHash(hashRev),
+	})
 
 	return nil
 }
