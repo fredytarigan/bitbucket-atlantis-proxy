@@ -130,6 +130,8 @@ func getChange() []string {
 		filePaths = append(filePaths, fileStat.Name)
 	}
 
+	log.Printf("File Path : %s", filePaths)
+
 	f := make(map[string]string)
 	pr := []string{}
 	for _, filePath := range filePaths {
