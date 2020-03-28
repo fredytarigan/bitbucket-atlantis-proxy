@@ -65,6 +65,12 @@ func gitClone(c string) error {
 		}
 	}
 
+	// ... retrieving the branch being pointed by HEAD
+	ref, err := r.Head()
+	if err != nil {
+		return err
+	}
+
 	// checking out to specific commit provided
 	log.Printf("checkout to commit : %s", c)
 	w, err := r.Worktree()
@@ -77,7 +83,7 @@ func gitClone(c string) error {
 	})
 
 	// ... retrieving the branch being pointed by HEAD
-	ref, err := r.Head()
+	ref, err = r.Head()
 	if err != nil {
 		return err
 	}
