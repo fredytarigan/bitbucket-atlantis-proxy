@@ -111,8 +111,10 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Commit Hash : %s", commitHash)
 
 	// Checkout to commit hash
-	err = gitClone(commitHash)
+	environment, err := gitClone(commitHash)
 	if err != nil {
 		log.Printf("Got error when cloning repository : %s", err)
 	}
+
+	log.Printf("%s", environment)
 }

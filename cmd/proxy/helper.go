@@ -23,7 +23,7 @@ type environment struct {
 	Environment string
 }
 
-func gitClone(c string) error {
+func gitClone(c string) (string, error) {
 	repoURL := "git@bitbucket.org:ovoeng/terraform.git"
 	cloneDir := "/opt/terraform"
 
@@ -52,7 +52,7 @@ func gitClone(c string) error {
 			})
 
 			if err != nil {
-				return err
+				return "", err
 			}
 		}
 	} else {
@@ -61,7 +61,7 @@ func gitClone(c string) error {
 		r, err = git.PlainOpen(cloneDir)
 
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -82,7 +82,7 @@ func gitClone(c string) error {
 	// checking out
 	w, err := r.Worktree()
 	if err != nil {
-		return nil
+		return "", nil
 	}
 
 	err = w.Checkout(&git.CheckoutOptions{
@@ -90,7 +90,7 @@ func gitClone(c string) error {
 	})
 
 	if err != nil {
-		return nil
+		return "", nil
 	}
 
 	log.Printf("git pull origin")
@@ -114,12 +114,14 @@ func gitClone(c string) error {
 		for _, i := range env {
 			log.Printf("%s", i)
 		}
-		return err
+		return "", err
 	}
 
 	log.Printf("Found environment : %s", env)
 
-	return nil
+	environment := strings.Join(env, ",")
+
+	return environment, nil
 }
 
 func getEnvironment() []string {
@@ -169,6 +171,7 @@ func getEnvironment() []string {
 		}
 	}
 	env := removeDupes(pr)
+
 	return env
 }
 
@@ -180,8 +183,8 @@ func removeDupes(folder []string) []string {
 	}
 
 	result := []string{}
-	for _ = range e {
-		result = append(result)
+	for key, _ := range e {
+		result = append(result, key)
 	}
 
 	return result
