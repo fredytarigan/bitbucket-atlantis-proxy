@@ -72,6 +72,11 @@ func gitClone(c string) error {
 		}
 	}
 
+	// fetch the repository
+	err = r.Fetch(&git.FetchOptions{
+		Auth: auth,
+	})
+
 	// ... retrieving the branch being pointed by HEAD
 	ref, err := r.Head()
 	if err != nil {
