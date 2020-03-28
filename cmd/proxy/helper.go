@@ -2,9 +2,15 @@ package main
 
 import (
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
+
+	"golang.org/x/crypto/ssh"
+
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
 func IsDirEmpty(name string) (bool, error) {
@@ -28,49 +34,61 @@ func gitClone(c string) error {
 	repoURL := "git@bitbucket.org:ovoeng/terraform.git"
 	cloneDir := "/opt/terraform"
 
-	extraEnv := "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\""
+	var r *git.Repository
+	var err error
 
-	// check if directory exists and not empty
-	ok, err := IsDirEmpty(cloneDir)
-
-	if err != nil {
-		os.Mkdir(cloneDir, 0755)
+	sshPath := os.Getenv("HOME") + "/.ssh/repokey"
+	sshKey, _ := ioutil.ReadFile(sshPath)
+	signer, _ := ssh.ParsePrivateKey(sshKey)
+	auth := &gitssh.PublicKeys{
+		User:   "git",
+		Signer: signer,
 	}
 
-	if ok {
-		// Clone the given repository to the given directory
-		log.Printf("Cloning source repositoring from %s to local %s", repoURL, cloneDir)
-		cmd := exec.Command("git", "clone", "--branch", "master", "--single-branch", repoURL, cloneDir)
-		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, extraEnv)
-		_, err := cmd.Output()
-		if err != nil {
+	// check if the folder already exists
+	if _, err := os.Stat(cloneDir); err != nil {
+		if os.IsNotExist(err) {
+
+			// Clone the given repository to the given directory
+			log.Printf("git clone %s %s --recursive", repoURL, cloneDir)
+
+			r, err = git.PlainClone(cloneDir, false, &git.CloneOptions{
+				URL:               repoURL,
+				RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+				Auth:              auth,
+			})
+
 			return err
+		} else {
+			log.Printf("Found existing directory %s", cloneDir)
+			r, err = git.PlainOpen(cloneDir)
 		}
 	}
 
-	// run a pull
-	log.Printf("Running git pull command on %s", cloneDir)
-	cmd := exec.Command("git", "pull")
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, extraEnv)
-	cmd.Dir = cloneDir
-	_, err = cmd.Output()
+	// checking out to specific commit provided
+	log.Printf("checkout to commit : %s", c)
+	w, err := r.Worktree()
 	if err != nil {
 		return err
 	}
 
-	// checkout to a given commit
-	log.Printf("Running git checkout to commitID %s on %s", c, cloneDir)
-	cmd = exec.Command("git", "checkout", c)
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, extraEnv)
-	cmd.Dir = cloneDir
-	_, err = cmd.Output()
+	err = w.Checkout(&git.CheckoutOptions{
+		Hash: plumbing.NewHash(c),
+	})
+
+	// ... retrieving the branch being pointed by HEAD
+	ref, err := r.Head()
 	if err != nil {
 		return err
 	}
+
+	// ... retrieving the commit object
+	commit, err := r.CommitObject(ref.Hash())
+	if err != nil {
+		return err
+	}
+
+	log.Println(commit)
 
 	return nil
-
 }
