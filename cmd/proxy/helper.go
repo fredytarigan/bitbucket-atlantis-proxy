@@ -64,6 +64,7 @@ func gitClone(c string) error {
 		}
 	} else {
 		log.Printf("Found existing directory %s", cloneDir)
+
 		r, err = git.PlainOpen(cloneDir)
 
 		if err != nil {
@@ -83,6 +84,10 @@ func gitClone(c string) error {
 	if err != nil {
 		return err
 	}
+
+	// pull the latest code
+	log.Printf("git pull origin")
+	_ = w.Pull(&git.PullOptions{RemoteName: "origin"})
 
 	err = w.Checkout(&git.CheckoutOptions{
 		Hash: plumbing.NewHash(c),
