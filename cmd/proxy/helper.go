@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -16,7 +17,7 @@ import (
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
-const DirStructure = `(?P<fullpath>.*\/)(?P<filename>.*.tf)`
+const DirStructure = `(?P<fullpath>.*\/)(?P<environment>[\w|\W].*)\/(?P<filename>.*.tf)`
 
 type environment struct {
 	Environment string
@@ -104,14 +105,24 @@ func gitClone(c string) error {
 		Hash: plumbing.NewHash(hashRev),
 	})
 
-	dirChange := getChange()
+	env := getEnvironment()
 
-	log.Printf("got changes on directory : %s", dirChange)
+	if len(env) > 1 {
+		err = errors.New("Found multiple environment in one commit")
+		log.Printf("Found multiple environment in one commit")
+		log.Printf("Environment found :")
+		for _, i := range env {
+			log.Printf("%s", i)
+		}
+		return err
+	}
+
+	log.Printf("Found environment : %s", env)
 
 	return nil
 }
 
-func getChange() []string {
+func getEnvironment() []string {
 	cloneDir := "/opt/terraform"
 	var matcher *regexp.Regexp
 	//var finalDir string
@@ -129,8 +140,6 @@ func getChange() []string {
 	for _, fileStat := range fileStats {
 		filePaths = append(filePaths, fileStat.Name)
 	}
-
-	log.Printf("File Path : %s", filePaths)
 
 	f := make(map[string]string)
 	pr := []string{}
@@ -153,10 +162,14 @@ func getChange() []string {
 			}
 		}
 
-		pr = append(pr, f["fullpath"])
+		for key, value := range f {
+			if key == "environment" {
+				pr = append(pr, value)
+			}
+		}
 	}
-	dir := removeDupes(pr)
-	return dir
+	env := removeDupes(pr)
+	return env
 }
 
 func removeDupes(folder []string) []string {
