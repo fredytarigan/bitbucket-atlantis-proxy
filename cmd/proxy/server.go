@@ -96,7 +96,7 @@ func hook(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("request header %s", requestHeader)
 
-	err = json.NewDecoder(r.Body).Decode(&c)
+	err := json.NewDecoder(r.Body).Decode(&c)
 
 	if err != nil {
 		data := StandardResponse{
