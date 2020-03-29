@@ -97,6 +97,12 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	requestBody = body
 	requestHeader := r.Header
 
+	for key, values := range requestHeader {
+		for _, value := range values {
+			log.Printf("Key %s with value %s", key, value)
+		}
+	}
+
 	log.Printf("Request body %s", requestBody)
 	log.Printf("Request header %s", requestHeader)
 
@@ -141,6 +147,18 @@ func hook(w http.ResponseWriter, r *http.Request) {
 
 	if atlantisURL != "" {
 		log.Printf("Proxying bitbucket hook to atlantis server at %s", atlantisURL)
+		// timeout := time.Duration(5 * time.Second)
+		// client := http.Client{
+		// 	Timeout: timeout,
+		// }
+
+		// request, err := http.NewRequest("POST", atlantisURL+"/events/", bytes.NewBuffer(requestBody))
+
+		// for key, values := range requestHeader {
+		// 	for _, value := range values {
+		// 		request.Header.Set(key, value)
+		// 	}
+		// }
 	} else {
 		log.Printf("Cannot find atlantis URL for environment %s", environment)
 	}
