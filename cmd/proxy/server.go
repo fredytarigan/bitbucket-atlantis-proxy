@@ -143,7 +143,7 @@ func hook(w http.ResponseWriter, r *http.Request) {
 			log.Printf("unable to marshal request body %s", err)
 		}
 
-		request, err := http.NewRequest("POST", atlantisURL+"/events/", bytes.NewBuffer(requestBody))
+		request, err := http.NewRequest("POST", atlantisURL+"/events", bytes.NewBuffer(requestBody))
 
 		for key, values := range requestHeader {
 			for _, value := range values {
