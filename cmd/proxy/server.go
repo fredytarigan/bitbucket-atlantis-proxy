@@ -90,8 +90,6 @@ func hook(w http.ResponseWriter, r *http.Request) {
 
 	eventType := r.Header.Get(bitbucketEventTypeHeader)
 
-	defer r.Body.Close()
-
 	// store the body
 	// this will be the data we sent to atlantis
 	body, err := ioutil.ReadAll(r.Body)
@@ -168,5 +166,7 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Printf("Cannot find atlantis URL for environment %s", environment)
 	}
+
+	defer r.Body.Close()
 
 }
