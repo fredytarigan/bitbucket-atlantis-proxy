@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -84,17 +85,19 @@ URI Path : "/hook"
 */
 func hook(w http.ResponseWriter, r *http.Request) {
 	var c CommitHashID
+	var err error
 	var atlantisURL string
 
 	eventType := r.Header.Get(bitbucketEventTypeHeader)
 
-	defer r.Body.Close()
-
+	requestBody, err := ioutil.ReadAll(r.Body)
 	requestHeader := r.Header
+
+	defer r.Body.Close()
 
 	log.Printf("request header %s", requestHeader)
 
-	err := json.NewDecoder(r.Body).Decode(&c)
+	err = json.Unmarshal(requestBody, &c)
 
 	if err != nil {
 		data := StandardResponse{
@@ -138,7 +141,8 @@ func hook(w http.ResponseWriter, r *http.Request) {
 			Timeout: timeout,
 		}
 
-		requestBody, err := json.Marshal(r.Body)
+		log.Printf("Request Body : %s", requestBody)
+
 		if err != nil {
 			log.Printf("unable to marshal request body %s", err)
 		}
