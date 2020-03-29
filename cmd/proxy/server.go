@@ -99,9 +99,6 @@ func hook(w http.ResponseWriter, r *http.Request) {
 	requestBody = body
 	requestHeader := r.Header
 
-	log.Printf("Request body %s", requestBody)
-	log.Printf("Request header %s", requestHeader)
-
 	// log.Printf("%s", body)
 
 	err = json.NewDecoder(r.Body).Decode(&c)
