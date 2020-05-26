@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -127,9 +128,11 @@ func hook(w http.ResponseWriter, r *http.Request) {
 
 	// set url
 	if environment == "dev" {
-		atlantisURL = "https://atlantis.ext.bit-stack.net"
+		atlantisURL = os.Getenv("ATLANTIS_DEV")
+	} else if environment == "stg" {
+		atlantisURL = os.Getenv("ATLANTIS_STG")
 	} else if environment == "prd" {
-		atlantisURL = "http://atlantis.ovo.co.id"
+		atlantisURL = os.Getenv("ATLANTIS_PRD")
 	} else {
 		atlantisURL = ""
 	}

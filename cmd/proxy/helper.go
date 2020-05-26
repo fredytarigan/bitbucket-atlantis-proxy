@@ -17,14 +17,14 @@ import (
 	gitssh "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )
 
-const DirStructure = `(?P<fullpath>.*\/)(?P<environment>[\w|\W].*)\/(?P<filename>.*.tf)`
+const DirStructure = `(?P<fullpath>.*\/)(?P<environment>(dev|stg|prd).*)\/(?P<filename>.*.tf)`
 
 type environment struct {
 	Environment string
 }
 
 func gitClone(c string) (string, error) {
-	repoURL := "git@bitbucket.org:ovoeng/terraform.git"
+	repoURL := os.Getenv("TERRAFORM_REPO")
 	cloneDir := "/opt/terraform"
 
 	var r *git.Repository
